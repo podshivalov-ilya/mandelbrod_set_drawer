@@ -36,6 +36,7 @@ void refCopyingDeleter(NS::Copying<T> * ref) {
 void rawBufferDeleter(uint8_t *rawBuffer) {
     delete [] rawBuffer;
 }
+
 MandelbrotSetGenerator::MandelbrotSetGenerator()
     : device_(MTL::CreateSystemDefaultDevice(), refDeleter<MTL::Device>),
       library_(nullptr, refDeleter<MTL::Library>),
@@ -46,8 +47,7 @@ MandelbrotSetGenerator::MandelbrotSetGenerator()
       positionBuffer_(nullptr, refResourceDeleter<MTL::Buffer>),
       maxItBuffer_(nullptr, refResourceDeleter<MTL::Buffer>),
       error_(NS::Error::alloc()->init(NS::CocoaErrorDomain, 99, NS::Dictionary::dictionary()), refCopyingDeleter<NS::Error>),
-      textureWidth_(0), textureHeight_(0),
-      scale_(0.0), centerX_(0.0), centerY_(0.0),
+      size_({0, 0}), scale_(0.0), centerX_(0.0), centerY_(0.0),
       maxIterations_(0), initialized_(false) {
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initializing metal...");
     if (device_ == nullptr)
@@ -64,12 +64,9 @@ MandelbrotSetGenerator::MandelbrotSetGenerator()
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Metal has been initialized");
 }
 
-void MandelbrotSetGenerator::setWidth(int w) {
-    textureWidth_ = w;
-}
-
-void MandelbrotSetGenerator::setHeight(int h) {
-    textureHeight_ = h;
+void MandelbrotSetGenerator::setSize(const Eigen::Vector2i& size) {
+    size_ = size;
+    initBuffersTextures();
 }
 
 void MandelbrotSetGenerator::setScale(float s) {
@@ -86,11 +83,11 @@ void MandelbrotSetGenerator::setMaxIterations(unsigned long maxIt) {
 }
 
 int MandelbrotSetGenerator::width() const {
-    return textureWidth_;
+    return size_[0];
 }
 
 int MandelbrotSetGenerator::height() const {
-    return textureHeight_;
+    return size_[1];
 }
 
 float MandelbrotSetGenerator::scale() const {
@@ -106,7 +103,7 @@ unsigned long MandelbrotSetGenerator::maxIterations() const {
 }
 
 bool MandelbrotSetGenerator::valid() const {
-    return initialized_ && textureWidth_ > 0 && textureHeight_ > 0 && maxIterations_ > 0;
+    return initialized_ && size_[0] > 0 && size_[1] > 0 && maxIterations_ > 0;
 }
 
 void MandelbrotSetGenerator::initLibrary() {
@@ -169,8 +166,8 @@ void MandelbrotSetGenerator::initBuffersTextures() {
     MTLTextureDescriptorPtr textureDesc(MTL::TextureDescriptor::alloc()->init(), refDeleter<MTL::TextureDescriptor>);
     if (textureDesc == nullptr)
         throw std::bad_alloc();
-    textureDesc->setWidth(textureWidth_);
-    textureDesc->setHeight(textureHeight_);
+    textureDesc->setWidth(size_[0]);
+    textureDesc->setHeight(size_[1]);
     textureDesc->setPixelFormat(MTL::PixelFormatRGBA8Uint);
     textureDesc->setTextureType(MTL::TextureType2D);
     textureDesc->setAllowGPUOptimizedContents(true);

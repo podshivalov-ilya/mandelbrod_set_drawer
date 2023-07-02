@@ -115,7 +115,7 @@ kernel void mandelbrot(texture2d<uint, access::write> image [[texture(0)]],
     if (lengthZ > 1 && i < *maxIterations)
         colorfulValue = i + 1.0 - log(log2(lengthZ));
     colorfulValue /= *maxIterations; // normalization;
-    float4 pixel = hotColorMap(colorfulValue);
+    float4 pixel = rainbowColorMap(colorfulValue);
     uint4 px = uint4(clamp(pixel, 0.0, 1.0) * 255.0);
     image.write(px, index);
 }

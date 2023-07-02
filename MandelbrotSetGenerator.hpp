@@ -3,6 +3,7 @@
 #include <atomic>
 #include <memory>
 #include <functional>
+#include <Eigen/Dense>
 
 namespace MTL {
     class Device;
@@ -34,8 +35,8 @@ class MandelbrotSetGenerator final
 public:
     MandelbrotSetGenerator();
     ~MandelbrotSetGenerator() = default;
-    void setWidth(int w);
-    void setHeight(int h);
+    void setSize(const Eigen::Vector2i& size);
+
     void setScale(float s);
     void setCenter(float x, float y);
     void setMaxIterations(unsigned long maxIt);
@@ -67,8 +68,7 @@ private:
     MTLBufferPtr maxItBuffer_;
     NSErrorPtr error_;
     std::atomic_flag condAtomicFlag_;
-    int textureWidth_;
-    int textureHeight_;
+    Eigen::Vector2i size_;
     float scale_;
     float centerX_;
     float centerY_;

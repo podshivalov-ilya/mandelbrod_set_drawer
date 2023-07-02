@@ -7,13 +7,13 @@ function (find_dearimgui)
     file(GLOB IMGUI_SOURCES
         ${IMGUI_SRC_DIR}/*.cpp
         ${IMGUI_SRC_DIR}/backends/imgui_impl_sdl2.cpp
-        ${IMGUI_SRC_DIR}/backends/imgui_impl_sdlrenderer.cpp
+        ${IMGUI_SRC_DIR}/backends/imgui_impl_sdlrenderer2.cpp
     )
 
     file(GLOB IMGUI_HEADERS
         ${IMGUI_SRC_DIR}/*.h
         ${IMGUI_SRC_DIR}/backends/imgui_impl_sdl2.h
-        ${IMGUI_SRC_DIR}/backends/imgui_impl_sdlrenderer.h
+        ${IMGUI_SRC_DIR}/backends/imgui_impl_sdlrenderer2.h
     )
 
     add_library(${IMGUI_TARGET} STATIC ${IMGUI_HEADERS} ${IMGUI_SOURCES})
@@ -81,6 +81,7 @@ endif()
 
 find_package(SDL2 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 set(METAL_CPP_INCLUDE_DIR "/usr/local/include/metal-cpp" CACHE PATH "Path to metal-cpp include directory")
 find_metal_cpp()
@@ -109,6 +110,7 @@ target_link_libraries(${PROJECT_NAME}
     ${SDL2_LIBRARIES}
     ${IMGUI_LIBRARIES}
     fmt::fmt
+    Eigen3::Eigen
     "-framework Cocoa"
     "-framework IOKit"
     "-framework CoreVideo"
