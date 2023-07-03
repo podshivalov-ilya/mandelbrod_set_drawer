@@ -3,7 +3,8 @@
 SDLApp::SDLApp()
     : surface_(nullptr, SDL_FreeSurface),
       texture_(nullptr, SDL_DestroyTexture),
-      done_(false)
+      done_(false),
+      fullScreen_(false)
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
         SDL_LogError(SDL_LOG_CATEGORY_ASSERT, "Unable to init SDL!");
@@ -142,6 +143,16 @@ void SDLApp::exec() {
 
         gui_->draw();
         SDL_RenderPresent(renderer_.get());
+
+        if (fullScreen_ != gui_->fullScreen()) {
+            if (gui_->fullScreen()) {
+                // TODO: Select the best resolution mode
+                SDL_SetWindowFullscreen(window_.get(), SDL_WINDOW_FULLSCREEN);
+            } else {
+                SDL_SetWindowFullscreen(window_.get(), 0);
+            }
+            fullScreen_ = gui_->fullScreen();
+        }
     }
 }
 
@@ -153,10 +164,10 @@ void SDLApp::pollEvent() {
         if (event.type == SDL_QUIT)
             done_ = true;
         if (event.type == SDL_WINDOWEVENT) {
-            if(event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window_.get()))
+            if (event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window_.get()))
                 done_ = true;
-            else if(event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED &&
-                    event.window.windowID == SDL_GetWindowID(window_.get())) {
+            else if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED &&
+                     event.window.windowID == SDL_GetWindowID(window_.get())) {
                 windowRect_.w = event.window.data1;
                 windowRect_.h = event.window.data2;
                 gui_->setSize({windowRect_.w, windowRect_.h});
@@ -170,6 +181,19 @@ void SDLApp::pollEvent() {
                 SDL_UpdateTexture(texture_.get(), NULL, surface_->pixels, surface_->pitch);
                 //SDL_UpdateTexture(texture_.get(), NULL, rawImage_.get(), rendererRect_.w * 4);
                 destRect_ = getDestinationRect();
+            }
+        }
+        if (event.type == SDL_KEYDOWN) {
+            if (event.key.keysym.sym == SDLK_LCTRL || event.key.keysym.sym == SDLK_RCTRL) {
+                controlMode_ = true;
+            }
+            if (controlMode_ && event.key.keysym.sym == SDLK_F11) {
+                gui_->setFullScreen(!gui_->fullScreen());
+            }
+        }
+        if (event.type == SDL_KEYUP) {
+            if (event.key.keysym.sym == SDLK_LCTRL || event.key.keysym.sym == SDLK_RCTRL) {
+                controlMode_ = false;
             }
         }
     }

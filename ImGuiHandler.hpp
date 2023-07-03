@@ -11,10 +11,16 @@ public:
     void draw();
     void render();
     void processEvent(SDL_Event *event);
+    bool fullScreen() const;
+    void setFullScreen(bool fullScreen);
 private:
     void renderPanel();
 private:
     SDLWindowPtr window_;
     SDLRendererPtr renderer_;
     Eigen::Vector2i size_;
+    double scale_;
+    Eigen::Vector2d center_;
+    unsigned long long maxIt_;
+    bool fullScreen_;
 };

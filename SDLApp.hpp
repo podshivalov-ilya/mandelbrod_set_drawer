@@ -35,6 +35,8 @@ private:
     SDL_Rect destRect_;
     std::unique_ptr<ImGuiHandler> gui_;
     bool done_;
+    bool fullScreen_;
+    bool controlMode_;
 
     const Eigen::Vector4i bgColor_{115, 140, 153, 255};
 };
