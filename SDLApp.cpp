@@ -91,7 +91,7 @@ void SDLApp::initMandelbrotGenerator() {
     const unsigned long maxIt(350);
 
     drawer_.setSize({rendererRect_.w, rendererRect_.h});
-    drawer_.setCenter(centerX, centerY);
+    drawer_.setCenter({centerX, centerY});
     drawer_.setScale(scale);
     drawer_.setMaxIterations(maxIt);
 }
@@ -112,6 +112,9 @@ void SDLApp::initTexture() {
 void SDLApp::initImGui() {
     gui_.reset(new ImGuiHandler(window_, renderer_));
     gui_->setSize({windowRect_.w, windowRect_.h});
+    gui_->setScale(drawer_.scale());
+    gui_->setCenter(drawer_.center());
+    gui_->setMaxIterations(drawer_.maxIterations());
 }
 
 SDL_Rect SDLApp::getDestinationRect() {
@@ -128,6 +131,24 @@ void SDLApp::exec() {
     while (!done_) {
         pollEvent();
 
+        if (drawer_.scale() != gui_->scale()) {
+            drawer_.setScale(gui_->scale());
+        }
+        if (drawer_.center() != gui_->center()) {
+            drawer_.setCenter(gui_->center());
+        }
+        if (drawer_.maxIterations() != gui_->maxIterations()) {
+            drawer_.setMaxIterations(gui_->maxIterations());
+        }
+        if (gui_->updateRequested()) {
+            rawImage_ = drawer_.getImage();
+            gui_->resetUpdate();
+
+            initSurface();
+            //SDL_UpdateTexture(texture_.get(), NULL, surface_->pixels, surface_->pitch);
+            SDL_UpdateTexture(texture_.get(), NULL, rawImage_.get(), rendererRect_.w * 4);
+            destRect_ = getDestinationRect();
+        }
         gui_->render();
 
         SDL_RenderSetScale(renderer_.get(), rendererScale_[0], rendererScale_[1]);
@@ -170,16 +191,16 @@ void SDLApp::pollEvent() {
                      event.window.windowID == SDL_GetWindowID(window_.get())) {
                 windowRect_.w = event.window.data1;
                 windowRect_.h = event.window.data2;
+                drawer_.setSize({rendererRect_.w, rendererRect_.h});
                 gui_->setSize({windowRect_.w, windowRect_.h});
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Size changed to %dx%d", windowRect_.w, windowRect_.h);
 
                 rendererRect_ = getRendererRect();
-                drawer_.setSize({rendererRect_.w, rendererRect_.h});
                 rawImage_ = drawer_.getImage();
 
                 initSurface();
-                SDL_UpdateTexture(texture_.get(), NULL, surface_->pixels, surface_->pitch);
-                //SDL_UpdateTexture(texture_.get(), NULL, rawImage_.get(), rendererRect_.w * 4);
+                //SDL_UpdateTexture(texture_.get(), NULL, surface_->pixels, surface_->pitch);
+                SDL_UpdateTexture(texture_.get(), NULL, rawImage_.get(), rendererRect_.w * 4);
                 destRect_ = getDestinationRect();
             }
         }

@@ -35,16 +35,16 @@ class MandelbrotSetGenerator final
 public:
     MandelbrotSetGenerator();
     ~MandelbrotSetGenerator() = default;
-    void setSize(const Eigen::Vector2i& size);
 
-    void setScale(float s);
-    void setCenter(float x, float y);
-    void setMaxIterations(unsigned long maxIt);
-    int width() const;
-    int height() const;
+    Eigen::Vector2i size() const;
+    void setSize(const Eigen::Vector2i& size);
     float scale() const;
-    std::tuple<float, float> center() const;
+    void setScale(float s);
+    Eigen::Vector2f center() const;
+    void setCenter(const Eigen::Vector2f& center);
     unsigned long maxIterations() const;
+    void setMaxIterations(unsigned long maxIt);
+
     bool valid() const;
     RawBufferPtr getImage();
 private:
@@ -70,8 +70,7 @@ private:
     std::atomic_flag condAtomicFlag_;
     Eigen::Vector2i size_;
     float scale_;
-    float centerX_;
-    float centerY_;
+    Eigen::Vector2f center_;
     unsigned long maxIterations_;
     bool initialized_;
 };

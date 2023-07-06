@@ -47,7 +47,7 @@ MandelbrotSetGenerator::MandelbrotSetGenerator()
       positionBuffer_(nullptr, refResourceDeleter<MTL::Buffer>),
       maxItBuffer_(nullptr, refResourceDeleter<MTL::Buffer>),
       error_(NS::Error::alloc()->init(NS::CocoaErrorDomain, 99, NS::Dictionary::dictionary()), refCopyingDeleter<NS::Error>),
-      size_({0, 0}), scale_(0.0), centerX_(0.0), centerY_(0.0),
+      size_({0, 0}), scale_(0.0), center_({0.0f, 0.0f}),
       maxIterations_(0), initialized_(false) {
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Initializing metal...");
     if (device_ == nullptr)
@@ -73,29 +73,24 @@ void MandelbrotSetGenerator::setScale(float s) {
     scale_ = s;
 }
 
-void MandelbrotSetGenerator::setCenter(float x, float y) {
-    centerX_ = x;
-    centerY_ = y;
+void MandelbrotSetGenerator::setCenter(const Eigen::Vector2f& center) {
+    center_ = center;
 }
 
 void MandelbrotSetGenerator::setMaxIterations(unsigned long maxIt) {
     maxIterations_ = maxIt;
 }
 
-int MandelbrotSetGenerator::width() const {
-    return size_[0];
-}
-
-int MandelbrotSetGenerator::height() const {
-    return size_[1];
+Eigen::Vector2i MandelbrotSetGenerator::size() const {
+    return size_;
 }
 
 float MandelbrotSetGenerator::scale() const {
     return scale_;
 }
 
-std::tuple<float, float> MandelbrotSetGenerator::center() const {
-    return std::make_tuple(centerX_, centerY_);
+Eigen::Vector2f MandelbrotSetGenerator::center() const {
+    return center_;
 }
 
 unsigned long MandelbrotSetGenerator::maxIterations() const {
@@ -187,8 +182,8 @@ void MandelbrotSetGenerator::initBuffersTextures() {
 
 void MandelbrotSetGenerator::setPositionBuffer() {
     float* position = reinterpret_cast<float*>(positionBuffer_->contents());
-    position[0] = centerX_;
-    position[1] = centerY_;
+    position[0] = center_[0];
+    position[1] = center_[1];
     position[2] = scale_;
     positionBuffer_->didModifyRange(NS::Range::Make(0, sizeof(float) * 3));
 }
