@@ -191,11 +191,12 @@ void SDLApp::pollEvent() {
                      event.window.windowID == SDL_GetWindowID(window_.get())) {
                 windowRect_.w = event.window.data1;
                 windowRect_.h = event.window.data2;
+                rendererRect_ = getRendererRect();
+
                 drawer_.setSize({rendererRect_.w, rendererRect_.h});
                 gui_->setSize({windowRect_.w, windowRect_.h});
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Size changed to %dx%d", windowRect_.w, windowRect_.h);
 
-                rendererRect_ = getRendererRect();
                 rawImage_ = drawer_.getImage();
 
                 initSurface();
